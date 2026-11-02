@@ -312,6 +312,12 @@ __attribute__((constructor)) static void GBInitialize(void) {
       [NSTimer scheduledTimerWithTimeInterval:25 repeats:YES block:^(NSTimer *timer) {
         if (UIApplication.sharedApplication.applicationState == UIApplicationStateActive) GBPushSetForeground(YES);
       }];
+      // Inspect cached transport health only while active. This also recovers a
+      // stale peer when the original UI is waiting without making new requests.
+      [NSTimer scheduledTimerWithTimeInterval:5 repeats:YES block:^(NSTimer *timer) {
+        if (UIApplication.sharedApplication.applicationState == UIApplicationStateActive)
+          GBNetworkEnsureReadyForURL([NSURL URLWithString:GBConnection.shared.serverURL]);
+      }];
       dispatch_after(dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC), dispatch_get_main_queue(), ^{
         [GBInterface refresh];
         if (restored) {

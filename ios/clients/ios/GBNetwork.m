@@ -15,6 +15,10 @@ extern void GBTailcatFree(char *text);
 static int GBActiveTunnel, GBPendingTunnel, GBReservedSocket = -1;
 static uint16_t GBActivePort, GBPendingPort;
 static CFAbsoluteTime GBLastAttempt;
+static CFAbsoluteTime GBPeerUnhealthySince;
+static const CFTimeInterval GBPeerRecoveryGrace = 20;
+static const CFTimeInterval GBPeerInitialGrace = 45;
+static BOOL GBPeerWasReady;
 static unsigned GBStartFailures;
 static NSDictionary *GBActiveNetwork, *GBPendingNetwork;
 static char GBNetworkQueueKey;
@@ -82,12 +86,22 @@ BOOL GBNetworkEnsureReadyForURL(NSURL *url) {
     if (![GBActiveNetwork[@"enabled"] boolValue] || ![url.host isEqual:@"127.0.0.1"] ||
         url.port.integerValue != GBActivePort) return;
     NSDictionary *status = GBActiveTunnel ? GBNetworkResult(GBTailcatStatus(GBActiveTunnel)) : nil;
-    // The listener is separate from peer reachability. Go retries remote connections.
-    if ([status[@"listening"] boolValue]) return;
-    ready = NO;
     CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    BOOL listening = [status[@"listening"] boolValue];
+    if (listening) {
+      if ([status[@"state"] isEqual:@"ready"] && ![status[@"error"] length]) {
+        GBPeerUnhealthySince = 0; GBPeerWasReady = YES;
+        return;
+      }
+      // Keep short outages and initial handshakes on the existing client. A
+      // suspended client can retain its listener while its peer stack is stale.
+      if (!GBPeerUnhealthySince || now < GBPeerUnhealthySince) GBPeerUnhealthySince = now;
+      CFTimeInterval grace = GBPeerWasReady ? GBPeerRecoveryGrace : GBPeerInitialGrace;
+      if (now - GBPeerUnhealthySince < grace) return;
+    }
+    ready = NO;
     double backoff = MIN(10.0, 0.5 * (1u << MIN(GBStartFailures, 4u)));
-    if (GBStartFailures && now - GBLastAttempt < backoff) return;
+    if (GBStartFailures && now >= GBLastAttempt && now - GBLastAttempt < backoff) return;
     GBLastAttempt = now;
     int old = GBActiveTunnel; GBActiveTunnel = 0;
     if (old) GBTailcatStop(old); // Releases the local listener before asynchronous peer cleanup.
@@ -100,10 +114,11 @@ BOOL GBNetworkEnsureReadyForURL(NSURL *url) {
     int handle = [result[@"handle"] intValue];
     ready = handle && [result[@"status"][@"listening"] boolValue] &&
       GBNetworkPort(result[@"status"][@"localURL"]) == GBActivePort;
-    if (ready) { GBActiveTunnel = handle; GBStartFailures = 0; }
+    if (ready) { GBActiveTunnel = handle; GBStartFailures = 0; GBPeerUnhealthySince = now; }
     else { if (handle) GBTailcatStop(handle); GBStartFailures = MIN(GBStartFailures + 1, 8u); }
     GBDiagnosticsEvent(old ? @"connection.tunnel.restart" : @"connection.tunnel.start",
-      @{@"port":@(GBActivePort), @"success":@(ready)});
+      @{@"port":@(GBActivePort), @"success":@(ready),
+        @"reason":listening ? @"peer-unreachable" : @"listener-unavailable"});
   });
   return ready;
 }
@@ -159,7 +174,7 @@ BOOL GBNetworkCommit(void) {
     GBNetworkReleaseSocket();
     GBActiveTunnel = GBPendingTunnel; GBActivePort = GBPendingPort; GBActiveNetwork = GBPendingNetwork;
     GBPendingTunnel = 0; GBPendingPort = 0; GBPendingNetwork = nil;
-    GBLastAttempt = 0; GBStartFailures = 0;
+    GBLastAttempt = 0; GBStartFailures = 0; GBPeerUnhealthySince = 0; GBPeerWasReady = NO;
     if (old) GBTailcatStop(old);
     committed = YES;
   });
@@ -182,7 +197,7 @@ NSString *GBNetworkRestore(NSString *fallback) {
     socklen_t size = sizeof(local);
     if (getsockname(fd, (struct sockaddr *)&local, &size) != 0) { close(fd); return; }
     GBReservedSocket = fd; GBActivePort = ntohs(local.sin_port);
-    GBActiveTunnel = 0; GBLastAttempt = 0; GBStartFailures = 0;
+    GBActiveTunnel = 0; GBLastAttempt = 0; GBStartFailures = 0; GBPeerUnhealthySince = 0; GBPeerWasReady = NO;
     address = [NSString stringWithFormat:@"http://127.0.0.1:%hu", GBActivePort];
   });
   return address;
@@ -192,7 +207,7 @@ void GBNetworkClear(void) {
     GBNetworkDropPending();
     int old = GBActiveTunnel;
     GBActiveTunnel = 0; GBActivePort = 0; GBActiveNetwork = nil;
-    GBLastAttempt = 0; GBStartFailures = 0;
+    GBLastAttempt = 0; GBStartFailures = 0; GBPeerUnhealthySince = 0; GBPeerWasReady = NO;
     GBNetworkReleaseSocket();
     SecItemDelete((__bridge CFDictionaryRef)GBNetworkQuery());
     if (old) GBTailcatStop(old);

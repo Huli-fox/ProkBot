@@ -65,6 +65,7 @@ int main(void) { @autoreleasepool {
   CHECK([GBNetworkRestore(nil) isEqual:url.absoluteString]); CHECK(starts==1); CHECK(handles.count==1);
   NSMutableDictionary *state=handles[@(GBActiveTunnel)];
   state[@"state"]=@"ready"; CHECK([GBNetworkStatus()[@"healthy"] boolValue]);
+  CHECK(GBNetworkEnsureReadyForURL(url)); CHECK(GBPeerWasReady);
   state[@"error"]=@"Destination connection failed"; CHECK(![GBNetworkStatus()[@"healthy"] boolValue]);
   [state removeObjectForKey:@"error"];
   close([state[@"fd"] intValue]); state[@"listening"]=@NO;
@@ -72,6 +73,34 @@ int main(void) { @autoreleasepool {
   CHECK([handles[@(GBActiveTunnel)][@"localURL"] isEqual:url.absoluteString]);
   CHECK(identityCalls==0);
   puts("PASS: lazy start, 20 concurrent requests, peer health and same-port listener recovery");
+
+  int beforePeerRecovery = starts;
+  CHECK(GBNetworkEnsureReadyForURL(url)); CHECK(starts == beforePeerRecovery);
+  GBPeerUnhealthySince = CFAbsoluteTimeGetCurrent() - GBPeerRecoveryGrace - 1;
+  dispatch_apply(20,dispatch_get_global_queue(QOS_CLASS_USER_INITIATED,0),^(size_t index){
+    CHECK(GBNetworkEnsureReadyForURL(url));
+  });
+  CHECK(starts == beforePeerRecovery + 1); CHECK(handles.count == 1);
+  CHECK([handles[@(GBActiveTunnel)][@"localURL"] isEqual:url.absoluteString]);
+  CHECK(identityCalls == 0);
+  state = handles[@(GBActiveTunnel)]; state[@"state"] = @"ready";
+  CHECK(GBNetworkEnsureReadyForURL(url)); CHECK(GBPeerUnhealthySince == 0);
+  state[@"state"] = @"connecting";
+  CHECK(GBNetworkEnsureReadyForURL(url)); CHECK(starts == beforePeerRecovery + 1);
+  CHECK(GBPeerUnhealthySince > 0);
+  state[@"state"] = @"ready"; state[@"error"] = @"Destination connection failed";
+  GBPeerUnhealthySince = CFAbsoluteTimeGetCurrent() - GBPeerRecoveryGrace - 1;
+  CHECK(GBNetworkEnsureReadyForURL(url)); CHECK(starts == beforePeerRecovery + 2);
+  CHECK(handles.count == 1); CHECK(identityCalls == 0);
+  puts("PASS: stale peer recovery, transient grace period, single concurrent rebuild and retained identity/port");
+
+  GBNetworkClear(); CHECK(!GBPeerWasReady); saveNetwork(); url=[NSURL URLWithString:GBNetworkRestore(nil)];
+  CHECK(GBNetworkEnsureReadyForURL(url)); int coldStarts = starts;
+  GBPeerUnhealthySince = CFAbsoluteTimeGetCurrent() - GBPeerRecoveryGrace - 1;
+  CHECK(GBNetworkEnsureReadyForURL(url)); CHECK(starts == coldStarts);
+  GBPeerUnhealthySince = CFAbsoluteTimeGetCurrent() - GBPeerInitialGrace - 1;
+  CHECK(GBNetworkEnsureReadyForURL(url)); CHECK(starts == coldStarts + 1);
+  puts("PASS: cold handshakes have a longer bounded grace period");
 
   GBNetworkClear(); CHECK(handles.count==0); saveNetwork();
   url=[NSURL URLWithString:GBNetworkRestore(nil)];

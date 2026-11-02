@@ -1,3 +1,7 @@
+# v2026.11.02
+
+- iOS: recover Tailcat automatically after suspension instead of remaining disconnected.
+
 # v2026.11.01
 
 First public patch release: use your own Host and models with Grok Bot's Mac and iOS interface.
