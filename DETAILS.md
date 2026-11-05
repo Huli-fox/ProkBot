@@ -32,3 +32,5 @@
 - `mac/patchers/desktop/download-original.mjs`：固定原版下载、缓存与校验 / Pinned original download, caching and verification.
 
 - `docs/AI-INSTALL*.md`：供 AI 执行的部署、配置与验收指南 / AI deployment, configuration and verification guide.
+
+- `mac/clients/desktop/local-services.mjs`：置顶与分组的原 Host 设置适配、账户缓存恢复。 / Native Host settings for pins and groups, with account cache restoration.

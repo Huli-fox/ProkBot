@@ -105,9 +105,15 @@ export async function createLocalServices(profile, window, { command, request, a
     getBoxMigrationStatus: () => null,
     getBoxHostPhase: () => "settled",
     getTeamMemberPolicy: () => null,
-    getServerPinnedAgents: () => [],
-    getHostPinnedAgents: () => [],
-    getHostSidebarSections: () => [],
+    // null lets the original migration read Host pins; [] would mean a cloud-side clear.
+    getServerPinnedAgents: () => null,
+    // These are desktop IPC methods; the Host persists both in its settings RPC.
+    getHostPinnedAgents: async () => (await command('getHostSettings')).pinnedAgentIds ?? null,
+    setHostPinnedAgents: async ({ pinnedAgentIds }) =>
+      (await command('setHostSettings', { pinnedAgentIds })).pinnedAgentIds ?? null,
+    getHostSidebarSections: async () => (await command('getHostSettings')).sidebarSections ?? null,
+    setHostSidebarSections: async ({ sections }) =>
+      (await command('setHostSettings', { sidebarSections: sections })).sidebarSections ?? null,
 
     getCursorAuthStatus: () => auth,
     getCursorLoginFlight: () => ({ kind: "idle" }),
@@ -137,13 +143,12 @@ export async function createLocalServices(profile, window, { command, request, a
       window.isMaximized() ? window.unmaximize() : window.maximize(),
     readClientPersistence: ({ key }) => store[key] ?? null,
     readManyClientPersistence: ({ include, exclude = [] }) =>
-      Object.entries(store)
-        .filter(
-          ([k]) =>
-            include.some((p) => k.startsWith(p)) &&
-            !exclude.some((p) => k.startsWith(p)),
-        )
-        .map(([key, value]) => ({ key, value })),
+      Object.fromEntries(Object.entries(store).filter(([key]) => {
+        const longest = prefixes => prefixes.reduce((length, prefix) =>
+          key.startsWith(prefix) ? Math.max(length, prefix.length) : length, -1);
+        const included = longest(include);
+        return included >= 0 && included >= longest(exclude);
+      })),
     writeClientPersistence: async ({ key, value }) => {
       store[key] = value;
       await persist();

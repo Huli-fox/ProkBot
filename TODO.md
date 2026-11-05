@@ -1,6 +1,6 @@
 # 进度 / Status
 
-2026-11-01
+2026-11-05
 
 - [x] Mac、iOS、Host 独立补丁工具；校验用户原版输入，保留原文件。
 - [x] 用户本地生成 Docker 镜像；DSM 实机部署、模型与工具、备份恢复验证。
@@ -35,3 +35,5 @@ The three patch tools and Docker deployment are implemented and validated with u
 - [x] 2026-11-01：Mac 补丁自动下载指定原版，支持缓存与本地输入；实际下载、生成与签名检查通过。
 
 - [x] 2026-11-01：README 提供可复制的 AI 安装指令，具体步骤放入独立指南，加入 iOS 下载入口。
+
+- [x] 2026-11-05：Mac Bot 置顶、分组与折叠状态恢复；复用原 Host 设置，自动化和原界面冷启动验证通过。 / Restore Mac Bot pins, sidebar groups and collapse state using existing Host settings.

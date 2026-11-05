@@ -1,3 +1,8 @@
+# v2026.11.05
+
+- Mac: fix Bot pins, sidebar groups and saved collapse state.
+- No Host update required.
+
 # v2026.11.02
 
 - iOS: recover Tailcat automatically after suspension instead of remaining disconnected.
