@@ -118,6 +118,14 @@ export function originFor(request, configured) {
   );
   return origin.origin;
 }
+export function adminOriginFor(request, publicOrigin, allowedOrigins = []) {
+  // Alternate management URLs must be explicitly configured and same-origin with
+  // the request Host. Never infer trust from Origin or forwarded headers alone.
+  const candidate = request.headers.origin;
+  if (allowedOrigins.includes(candidate) &&
+      new URL(candidate).host === request.headers.host) return candidate;
+  return publicOrigin;
+}
 export function adminMutation(request, origin) {
   check(
     request.headers["x-grokbot-csrf"] === "1",

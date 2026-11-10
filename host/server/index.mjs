@@ -53,6 +53,7 @@ import { proxyLocalExec } from "./local-exec-proxy.mjs";
 import { VncTickets, vncPath, normalizeVncUpgradeUrl } from "./vnc.mjs";
 import {
   adminMutation,
+  adminOriginFor,
   bearer,
   check,
   cookie,
@@ -100,6 +101,8 @@ export async function createSelfHostServer(options = {}) {
   );
   const publicUrl = options.publicUrl ?? process.env.GROKBOT_PUBLIC_URL;
   const canonical = publicUrl ? endpoint(publicUrl).origin : null;
+  const adminOrigins = (options.adminOrigins ?? process.env.GROKBOT_ADMIN_ORIGINS ?? '')
+    .split(',').map(value => value.trim()).filter(Boolean).map(value => endpoint(value).origin);
   const hostDataDir = resolve(
     options.hostDataDir ??
       process.env.GROKBOT_HOST_DATA_DIR ??
@@ -282,7 +285,8 @@ export async function createSelfHostServer(options = {}) {
   }
   async function adminRoutes(request, response, path, origin) {
     const method = request.method;
-    if (method !== "GET") adminMutation(request, origin);
+    const managementOrigin = adminOriginFor(request, origin, adminOrigins);
+    if (method !== "GET") adminMutation(request, managementOrigin);
     if (method === "GET" && path === "/admin/api/session") {
       return sendJson(response, 200, {
         initialized: auth.initialized,
@@ -299,7 +303,7 @@ export async function createSelfHostServer(options = {}) {
       const token = path.endsWith("/setup")
         ? await auth.setup(body.setupKey, body.password)
         : await auth.login(body.password);
-      session(response, token, origin);
+      session(response, token, managementOrigin);
       return sendJson(response, 200, { ok: true });
     }
     admin(request);
@@ -346,7 +350,7 @@ export async function createSelfHostServer(options = {}) {
       );
     if (method === "POST" && path === "/admin/api/logout") {
       await auth.logout(cookie(request, adminCookie));
-      session(response, "", origin);
+      session(response, "", managementOrigin);
       return sendJson(response, 200, { ok: true });
     }
     if (method === "GET" && path === "/admin/api/status") {
