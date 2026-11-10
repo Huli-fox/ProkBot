@@ -48,3 +48,16 @@ docker compose -f release/compose.execution.yaml up -d --build
 包格式、授权、附带技能见 [应用开发](../PLUGINS.md)。
 
 `release/patch-host.py --archive ORIGINAL --output NEW_DIRECTORY` 可单独生成 Host 文件并记录补丁耗时。生成过程仅执行固定字节复制与新增规则，不调用 AI 或反编译软件。
+
+## 仅使用远程 MCP，无自带 Box
+
+构建包含 `GROKBOT_BOX_DISABLED` 支持的 Host 后，可使用 `release/compose.mcp.yaml`。沿用已有项目名以复用 Host 数据卷：
+
+```sh
+docker compose -p grokbot -f release/compose.yaml stop box
+docker compose -p grokbot -f release/compose.mcp.yaml up -d host
+```
+
+此模式支持文字对话和管理页“应用”中的远程 HTTP/SSE MCP。原生 Box 的电脑、Shell、文件读写、桌面预览、本地 stdio MCP、代码应用、Box 文件库及技能同步不可用；附带本地文件的消息会明确报错。停用状态不会把执行回退到 Host 文件系统。原 Box 数据卷保留；切回原 Compose 配置即可恢复。
+
+例如 Simular Box 应添加为远程应用：地址 `https://mcp.box.simular.ai/mcp`，协议 `Streamable HTTP`，认证 `Bearer Token`。在服务商的 Personal Keys 页面创建密钥后，通过 Host 管理页授权。MCP 服务地址不属于本项目的 `grokbot-execution/v1` 执行节点协议，不能填入执行节点地址。服务商 MCP 自己的文件和桌面能力取决于其授权及提供的工具。

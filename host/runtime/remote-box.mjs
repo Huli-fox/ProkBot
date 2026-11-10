@@ -1,5 +1,6 @@
 import { posix } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { boxDisabled, createDisabledBox } from './disabled-box.mjs';
 
 const MAX_FILE_BYTES = 32 * 1024 * 1024;
 const CHUNK_BYTES = 12 * 1024;
@@ -15,6 +16,11 @@ with open(p,'rb') as f:
 
 /** Keep the original Exec/window protocol; replace assumptions about shared local files. */
 export function installRemoteBoxAdapter(bindings, original, env = process.env) {
+  if (boxDisabled(env)) {
+    bindings.createSandBox = () => createDisabledBox();
+    bindings.formatSandBoxStartupSummary = () => '[sand-host] built-in execution Box disabled; remote MCP only';
+    return { mode: 'disabled' };
+  }
   const host = env.GROKBOT_BOX_HOST?.trim();
   if (!host) return { mode: 'in-container' };
   if (!/^[A-Za-z0-9.-]+$/.test(host) && !/^\[[0-9a-f:]+\]$/i.test(host)) throw new Error('GROKBOT_BOX_HOST must be a hostname or IP address');

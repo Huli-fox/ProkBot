@@ -11,6 +11,7 @@
   "runtime/codex-prompt.mjs",
   "runtime/config.mjs",
   "runtime/context-policy.mjs",
+  "runtime/disabled-box.mjs",
   "runtime/federation-task-bridge.mjs",
   "runtime/host-attachments.mjs",
   "runtime/host-auto-review.mjs",

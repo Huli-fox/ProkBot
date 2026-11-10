@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { withSkillDependencies } from './host-skills.mjs';
 import { syncSkillFiles } from './skill-files.mjs';
 import { syncTurnAttachments } from './host-attachments.mjs';
+import { boxDisabled, boxDisabledError, withoutBoxSkills } from './disabled-box.mjs';
 
 const quote = value => `'${String(value).replaceAll("'", "'\\''")}'`;
 const prepareDirectory = `import os,sys,json,stat
@@ -61,12 +62,16 @@ export async function libraryRulesForTurn(options, library, dataDirectory = proc
 
 export function withLocalLibraryRunner(BaseRunner, library) {
   if (!process.env.GROKBOT_DATA_DIR) return BaseRunner;
+  const disabled = boxDisabled();
+  const wrapSkills = disabled ? withoutBoxSkills : withSkillDependencies;
   return class LocalLibraryRunner extends BaseRunner {
     constructor(options) {
       const context = options.requestContext;
-      const store = withSkillDependencies(options.skillStore);
-      super({ ...options, skillStore: store, requestContext: { ...context,
+      const store = wrapSkills(options.skillStore);
+      super({ ...options, ...(disabled ? { remoteBoxHasDesktop: false, getRemoteBoxAvailable: () => false } : {}),
+        skillStore: store, requestContext: { ...context,
         resolveRules: async () => {
+          if (disabled) return await context.resolveRules() ?? [];
           this.skillStore?.setExecutionPaths?.(await syncSkillFiles(options, library));
           return [
           ...(await context.resolveRules() ?? []),
@@ -77,10 +82,13 @@ export function withLocalLibraryRunner(BaseRunner, library) {
       this.localRunnerOptions = options;
     }
     async run(prompt, turn = {}) {
+      if (disabled && [turn.attachedFilePaths, turn.selectedImages, turn.selectedVideos].some(items => items?.length)) {
+        throw boxDisabledError();
+      }
       await syncTurnAttachments(this.localRunnerOptions, turn, library);
       return super.run(prompt, turn);
     }
-    setSkillStore(store) { super.setSkillStore(withSkillDependencies(store)); }
+    setSkillStore(store) { super.setSkillStore(wrapSkills(store)); }
   };
 }
 

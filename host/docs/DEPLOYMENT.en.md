@@ -35,3 +35,16 @@ Configure its address and key in the Host console. Set `GROKBOT_NODE_LISTEN_ADDR
 Manage, import and export all applications from Applications. Code apps run on the existing execution computer without extra containers.
 
 See [Application development](../PLUGINS.en.md) for package format, OAuth and bundled skills.
+
+## Remote MCP without the built-in Box
+
+Build a Host image with `GROKBOT_BOX_DISABLED` support, then use `release/compose.mcp.yaml`. Keep the existing project name to reuse its Host data volume:
+
+```sh
+docker compose -p grokbot -f release/compose.yaml stop box
+docker compose -p grokbot -f release/compose.mcp.yaml up -d host
+```
+
+This mode supports text conversations and remote HTTP/SSE MCP applications. Native computer, shell, file and desktop tools, local stdio MCP, code apps, Box library files and skill synchronization are unavailable. Messages with local file attachments fail explicitly. Execution never falls back to the Host filesystem. Box volumes are retained; switching back to the original Compose configuration restores native execution.
+
+For Simular Box, add an application at `https://mcp.box.simular.ai/mcp`, using Streamable HTTP and Bearer Token authentication. Authorize it in the Host console using a Personal Key from the provider. This MCP endpoint does not implement the Host's `grokbot-execution/v1` execution-node protocol. The provider's own desktop and file tools remain separate capabilities.

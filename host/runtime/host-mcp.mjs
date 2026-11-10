@@ -5,6 +5,7 @@ import { readFile, writeFile, rename } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { decorateNativeMcp } from './native-mcp.mjs';
+import { boxDisabled, createDisabledBoxMcpExec } from './disabled-box.mjs';
 
 const empty = () => ({ mcpServers: {} });
 const object = value => value && typeof value === 'object' && !Array.isArray(value);
@@ -63,7 +64,8 @@ export async function startLocalHostMcp(context, library, { nativeEnabled = () =
   let operations = Promise.resolve();
   let registryOperations = Promise.resolve();
   const log = message => context.host.log(`[local-mcp] ${message}`);
-  const boxExec = library.createBoxSandMcpExec(context.deps['forever-box'].box);
+  const boxExec = boxDisabled() ? createDisabledBoxMcpExec()
+    : library.createBoxSandMcpExec(context.deps['forever-box'].box);
   let appServers = {}, requestedServers = empty();
   const guardedExec = {
     ...boxExec,
