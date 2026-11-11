@@ -6,6 +6,8 @@ Goal: deploy ProkBot, configure its model and connect the clients. Project: http
 
 Ask together for: local or remote Host and working directory; Mac / iOS clients and local Mac control; LAN / Tailcat / existing HTTPS access; model endpoint, API key and model ID; and the administrator password for a new deployment. Remote deployment also needs connection details.
 
+For Android, first read the [experimental Android guide](../android/README.en.md) and confirm root, primary-user installation of the official `1.19.1 (3050)` app, and computer adb access. It uses the private Expo cache and does not build a distributable APK. Do not assume Mac/iOS HTTP, Tailcat, push or update-isolation behavior applies.
+
 Check architecture, memory, disk space and existing deployments. Reuse existing configuration and back up before updating. Install missing Python 3.10+ and Docker Compose. Mac patching runs on an Apple Silicon Mac with Node.js 22.12+.
 
 ## Inputs and outputs
@@ -71,6 +73,8 @@ python3 ios/release/patch-ios.py \
 Match an existing signing configuration's Bundle ID / App Group. See `ios/docs/SIGNING.en.md` and the generated `extension-signing.json`. Keep Widgets, Share and NotificationService. The user signs and installs the IPA, then connects with the Host address and a fresh pairing code.
 
 ## Verify and hand over
+
+Android requires the same HTTPS origin reachable from both devices and trusted by the phone. Deploy Android pairing support on Host, then use `root_cache.py connect` with an independent pairing for each phone. Diagnose failures without clearing app data or bypassing version checks. The tool never reboots the phone. Revoke and restore before an APK upgrade; automatic cross-version recovery is not supported.
 
 - Check container state, `/healthz`, the model connection test and the conversation core in the administration page.
 - Connect the selected clients, read the Bot list and complete a short conversation. Verify access over the selected network.

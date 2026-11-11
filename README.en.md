@@ -59,7 +59,11 @@ flowchart LR
 
 The public edition provides Mac, iOS and Host patch tools. Supply the supported original files to generate apps and Docker images.
 
+[Experimental Android root access](android/README.en.md) is also available for the official `1.19.1 (3050)` app. It patches the private cache through adb and has verified text messaging on one device. It requires root and does not provide a standalone patched APK.
+
 ## How the original features are provided
+
+This table describes Mac, iOS and Host. See the Android guide for its verified scope: Android OTA/telemetry isolation and background push are not implemented.
 
 🟢 Original kept　🔁 Replaced with your own service　⛔ Turned off
 

@@ -6,6 +6,8 @@
 
 一次询问：Host 部署在本机还是远程机器及工作目录、需要 Mac / iOS 哪些客户端及是否控制 Mac、本机或远程的访问方式（局域网 / Tailcat / 已有 HTTPS）、模型接口地址 / API Key / 模型 ID，以及新部署的管理员密码。远程部署还需要连接方式。
 
+若用户选择 Android，先阅读 [Android 实验说明](../android/README.md)，确认 root、主用户安装、官方 `1.19.1 (3050)` 以及电脑 adb。该入口通过私有 Expo 缓存接入，不构建可分发 APK；不能套用 Mac/iOS 的 HTTP、Tailcat、推送或自动更新隔离结论。
+
 检查目标机器架构、内存、磁盘和已有部署；复用用户已有配置，更新前使用备份工具保存数据。安装缺少的 Python 3.10+、Docker Compose；Mac 补丁在 Apple Silicon Mac 上运行，需要 Node.js 22.12+。
 
 ## 资源与输出
@@ -71,6 +73,8 @@ python3 ios/release/patch-ios.py \
 已有签名配置时使用匹配的 Bundle ID / App Group；扩展配置见 `ios/docs/SIGNING.md` 与输出的 `extension-signing.json`。保留小组件、分享和通知三个扩展。由用户自行签名安装，再填写 Host 地址和新的配对码。
 
 ## 完成验证
+
+Android 需使用双方可达且手机信任的 HTTPS origin，部署当前 Host 的 Android 配对支持后执行 `root_cache.py connect`。每台手机独立配对；安装/刷新失败按 Android 指南诊断，不删除 App 数据、不绕过版本校验，工具不会自动重启手机。APK 升级前先撤销设备并恢复缓存；跨版本自动恢复尚未支持。
 
 - 检查容器状态、`/healthz`、模型连接测试和管理页中的对话核心状态。
 - 连接选定的客户端，确认能读取 Bot 列表，完成一条简短对话；检查所选网络方式从客户端可访问。

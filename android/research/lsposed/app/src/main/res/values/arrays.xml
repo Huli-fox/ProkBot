@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="module_scope"><item>ai.x.grok.bot</item></string-array>
+</resources>

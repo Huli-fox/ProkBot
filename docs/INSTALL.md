@@ -2,6 +2,8 @@
 
 [交给 AI 安装](AI-INSTALL.md)。
 
+Android 用户请先阅读 [root 接入实验说明](../android/README.md)：需要指定官方版本、root 和 adb，配对在电脑终端中完成，不能套用下方 Mac/iOS 的安装与 HTTP 访问流程。
+
 ## 1. 部署 Host
 
 需要 Python 3.10+、Docker Compose，运行 Linux amd64 镜像。Apple Silicon Mac 使用转译运行。

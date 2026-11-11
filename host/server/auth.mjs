@@ -140,9 +140,9 @@ export class Auth {
       "设备名称需要 1–80 个字符",
     );
     check(
-      ["desktop", "ios"].includes(platform),
+      ["desktop", "ios", "android"].includes(platform),
       400,
-      "设备类型应为 desktop 或 ios",
+      "设备类型应为 desktop、ios 或 android",
     );
     const token = secret();
     const id = randomUUID();

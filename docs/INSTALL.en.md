@@ -2,6 +2,8 @@
 
 [Install with AI](AI-INSTALL.en.md).
 
+For Android, use the [experimental root guide](../android/README.en.md). It requires the pinned official app, root and adb, with pairing in the computer terminal. The Mac/iOS installation and HTTP access steps below do not apply to Android.
+
 ## 1. Deploy the Host
 
 Requires Python 3.10+ and Docker Compose. The runtime is Linux amd64; Apple Silicon Macs use emulation.

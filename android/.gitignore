@@ -1,0 +1,15 @@
+# Generated binaries, credentials, certificates and app/cache snapshots.
+*.apk
+*.aab
+*.hbc
+*.dex
+*.class
+*.jar
+*.jks
+*.keystore
+*.pem
+*.key
+*.db
+*.db-wal
+*.db-shm
+connection.json

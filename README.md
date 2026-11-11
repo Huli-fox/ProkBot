@@ -57,7 +57,11 @@ flowchart LR
 
 提供 Mac、iOS、Host 三个补丁工具；使用指定版本的原文件生成客户端与 Docker 镜像。
 
+另提供 [Android root 接入（实验性）](android/README.md)：使用官方 `1.19.1 (3050)`，通过 adb 修改私有缓存，已验证文字收发。需要 root，不提供可直接侧载的补丁 APK。
+
 ## 如何实现原生功能
+
+下表描述 Mac、iOS 和 Host。Android 的已验证范围与限制见其安装说明；Android 尚未关闭官方 OTA/遥测，也未接入后台推送。
 
 🟢 保留原版　🔁 换成你自己的服务　⛔ 已关闭
 
@@ -147,6 +151,8 @@ https://gitee.com/ahaduoduoduo/ProkBot
 ```
 
 [iOS 安装包](https://gitee.com/ahaduoduoduo/ProkBot/releases)：提供清理后的 1.16.0（23152）原版砸壳 IPA 和已注入的未签名 IPA，均保留三个扩展。使用自己的证书签名安装。
+
+[Android 安装说明](android/README.md)：已有 root 手机的用户自行安装支持的官方版本，再通过电脑工具配对。分享工具源码即可，每台手机独立生成含自身令牌的缓存补丁。
 
 ## 许可与支持
 
