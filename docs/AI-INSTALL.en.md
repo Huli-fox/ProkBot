@@ -1,6 +1,6 @@
 # AI installation guide
 
-Goal: deploy ProkBot, configure its model and connect the clients. Project: https://gitee.com/ahaduoduoduo/ProkBot .
+Goal: deploy ProkBot, configure its model and connect the clients. Project: https://github.com/Huli-fox/ProkBot .
 
 ## Before starting
 

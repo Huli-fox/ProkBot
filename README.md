@@ -144,7 +144,6 @@ flowchart LR
 
 ```text
 请帮我安装并配置 ProkBot：
-https://gitee.com/ahaduoduoduo/ProkBot
 先阅读 README.md 和 docs/AI-INSTALL.md，按指南实际完成部署与配置。
 需要我提供的部署位置、客户端、访问方式和模型信息，请一次问清。
 完成后验证 Host 和客户端连接，告诉我使用入口及日常维护命令。

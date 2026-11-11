@@ -146,7 +146,6 @@ Copy the following to an AI that can run commands, using the copy button at the 
 
 ```text
 Help me install and configure ProkBot:
-https://gitee.com/ahaduoduoduo/ProkBot
 Read README.en.md and docs/AI-INSTALL.en.md, then carry out the deployment and configuration.
 Ask me for the deployment target, clients, access method and model configuration together.
 Verify the Host and client connections, then give me the access URL and maintenance commands.

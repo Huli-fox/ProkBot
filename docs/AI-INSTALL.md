@@ -1,6 +1,6 @@
 # 给 AI 的安装指南
 
-目标：完成 ProkBot 部署、模型配置和客户端连接。项目为 https://gitee.com/ahaduoduoduo/ProkBot 。
+目标：完成 ProkBot 部署、模型配置和客户端连接。项目为 https://github.com/Huli-fox/ProkBot 。
 
 ## 开始前
 
