@@ -5,6 +5,7 @@ import { withSkillDependencies } from './host-skills.mjs';
 import { syncSkillFiles } from './skill-files.mjs';
 import { syncTurnAttachments } from './host-attachments.mjs';
 import { boxDisabled, boxDisabledError, withoutBoxSkills } from './disabled-box.mjs';
+import { executionRunnerOptions } from './execution-capabilities.mjs';
 
 const quote = value => `'${String(value).replaceAll("'", "'\\''")}'`;
 const prepareDirectory = `import os,sys,json,stat
@@ -68,7 +69,7 @@ export function withLocalLibraryRunner(BaseRunner, library) {
     constructor(options) {
       const context = options.requestContext;
       const store = wrapSkills(options.skillStore);
-      super({ ...options, ...(disabled ? { remoteBoxHasDesktop: false, getRemoteBoxAvailable: () => false } : {}),
+      super({ ...options, ...executionRunnerOptions(options, { disabled }),
         skillStore: store, requestContext: { ...context,
         resolveRules: async () => {
           if (disabled) return await context.resolveRules() ?? [];

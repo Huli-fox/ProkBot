@@ -165,7 +165,8 @@ export async function createSelfHostServer(options = {}) {
   const voice = new Voice({ config: voiceConfig, speech, synthesis, auth, connections,
     hostCall: internalHostClient(hostUrl, internalToken) });
   const desktopCapabilities = new DesktopCapabilities({ authenticate: device, connections, internalToken, enabled: () => harness.current().macComputer });
-  const browserProviders = new DesktopBrowserProviders({ authenticate: device, connections, hostUrl, internalToken, enabled: key => harness.current()[key] });
+  const browserProviders = new DesktopBrowserProviders({ authenticate: device, connections, hostUrl, internalToken,
+    enabled: key => harness.status({ userComputer: true }).effective[key] });
   let executionRevision = executionNode.active()?.revision;
   const limiter = new RateLimit();
   const usage = timeZone => {
@@ -327,7 +328,9 @@ export async function createSelfHostServer(options = {}) {
     }
     if (await tailcatAdmin(request, response, path, network)) return;
     if (await applicationsAdmin(request, response, path, applications, origin, { kind: 'admin', hash: hash(cookie(request, adminCookie)) })) return;
-    if (await adminExtensions(request, response, path, { harness, skills, executionNode, plugins, webhooks, verifyAgent, sharing, federation, mediaSettings, webSettings, webServices, prompts })) return;
+    if (await adminExtensions(request, response, path, { harness,
+      harnessAvailability: () => ({ userComputer: options.computers?.().computers.some(item => item.connected === true) === true || desktopCapabilities.list().length > 0 }),
+      skills, executionNode, plugins, webhooks, verifyAgent, sharing, federation, mediaSettings, webSettings, webServices, prompts })) return;
     if (method === 'GET' && path === '/admin/api/speech')
       return sendJson(response, 200, speech.publicConfig());
     if (method === 'PUT' && path === '/admin/api/speech')

@@ -7,7 +7,7 @@ import { mediaAdmin } from './media-api.mjs';
 import { promptAdmin } from './prompt-api.mjs';
 
 /** Called after the common admin authentication and mutation-origin checks. */
-export async function adminExtensions(request, response, path, { harness, skills, executionNode, plugins, webhooks, verifyAgent, sharing, federation, mediaSettings, webSettings, webServices, prompts }) {
+export async function adminExtensions(request, response, path, { harness, harnessAvailability, skills, executionNode, plugins, webhooks, verifyAgent, sharing, federation, mediaSettings, webSettings, webServices, prompts }) {
   const method = request.method;
   if (await pluginAdmin(request, response, path, plugins)) return true;
   if (await webhookAdmin(request, response, path, webhooks, verifyAgent)) return true;
@@ -23,8 +23,8 @@ export async function adminExtensions(request, response, path, { harness, skills
     sendJson(response, 200, await executionNode.test(await jsonBody(request))); return true;
   }
   if (path === '/admin/api/harness') {
-    if (method === 'GET') { sendJson(response, 200, harness.current()); return true; }
-    if (method === 'PUT') { sendJson(response, 200, await harness.save(await jsonBody(request))); return true; }
+    if (method === 'GET') { sendJson(response, 200, harness.status(harnessAvailability?.())); return true; }
+    if (method === 'PUT') { await harness.save(await jsonBody(request)); sendJson(response, 200, harness.status(harnessAvailability?.())); return true; }
   }
   if (!path.startsWith('/admin/api/skills')) return false;
   const match = /^\/admin\/api\/skills(?:\/([a-z][a-z0-9-]{0,63}))?$/.exec(path);

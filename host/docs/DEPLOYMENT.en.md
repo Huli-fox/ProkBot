@@ -48,3 +48,17 @@ docker compose -p grokbot -f release/compose.mcp.yaml up -d host
 This mode supports text conversations and remote HTTP/SSE MCP applications. Native computer, shell, file and desktop tools, local stdio MCP, code apps, Box library files and skill synchronization are unavailable. Messages with local file attachments fail explicitly. Execution never falls back to the Host filesystem. Box volumes are retained; switching back to the original Compose configuration restores native execution.
 
 For Simular Box, add an application at `https://mcp.box.simular.ai/mcp`, using Streamable HTTP and Bearer Token authentication. Authorize it in the Host console using a Personal Key from the provider. This MCP endpoint does not implement the Host's `grokbot-execution/v1` execution-node protocol. The provider's own desktop and file tools remain separate capabilities.
+
+### Capabilities and prompts with external machines
+
+With `GROKBOT_BOX_DISABLED=1`, the Host adapts its standard, slim, automation, and dynamic environment prompts for remote MCP execution. No manual replacement of the default prompts is needed. Coding may use an authorized remote machine's command and file tools; a Mac is required only for work actually routed through that Mac's available Codex tools.
+
+Multiple applications, such as Simular and InstaBox, can coexist. The agent discovers current tools and honors the selected provider and machine, reuses the target established for the task, or asks when the target is ambiguous. Provider identifiers, machine IDs, sessions, and paths stay together. Command execution does not imply desktop access, and the native `computerUse`/`browserUse` subagents do not control external MCP machines.
+
+The built-in capabilities page shows both saved preferences and effective availability. Native browser subagents, browser input forms, login import, passkey forwarding, and teaching are inactive without a native Box. Remote application tools work independently, and ordinary chat questions do not require browser forms. User-computer tools such as `ExternalShell` and `ExternalRead` are offered only while a desktop execution provider is connected.
+
+Memory, profiles, and routines remain on the Host and use the existing Host management tools; they are not mounted into remote machines. Remote files require a real provider download/export mechanism or delivery as small text results. Sending a remote `file://` path does not transfer that file to the phone.
+
+Existing conversations and prompt revisions are retained. An upgrade introduces new default prompt variants; edits to older variants are not migrated automatically. Compare and transfer any desired custom instructions in the prompt editor. Actual execution constraints still govern availability. Rebuild and apply the Host image to activate code updates; no device pairing or phone restart is required.
+
+To validate, prepare the seed with `release/patch-host.py`, set `GROKBOT_TEST_RECOVERED_DIR` to its `seed/release-reliability` directory, and run `node --test tests/external-box*.test.mjs tests/disabled-box.test.mjs`. Persistence and HTTP tests require Linux. Set `GROKBOT_TEST_FULL_RUNTIME=1` inside a prepared Host Linux image to also verify installation of the entire recovered runtime. These tests require no model or remote MCP calls.

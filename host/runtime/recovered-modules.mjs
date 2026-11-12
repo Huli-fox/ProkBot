@@ -24,7 +24,7 @@ export function combineRecoveryPlans(plans) {
 }
 
 /** Construct shared module closures in dependency order before installing bundle bindings. */
-export async function constructRecoveredModules(plan, original, directory, label) {
+export async function constructRecoveredModules(plan, original, directory, label, { decorate = (_module, bindings) => bindings } = {}) {
   const bindings = {}, modules = [];
   for (const module of plan.modules) {
     const dependencies = {};
@@ -34,7 +34,7 @@ export async function constructRecoveredModules(plan, original, directory, label
       dependencies[name] = source[name];
     }
     const factory = await import(pathToFileURL(join(directory, module.name)).href);
-    const recovered = factory.createRecoveredModule(dependencies);
+    const recovered = decorate(module, factory.createRecoveredModule(dependencies));
     for (const name of [...module.exports, ...module.sharedExports ?? []]) {
       if (module.exports.includes(name) ? typeof recovered[name] !== 'function' : recovered[name] === undefined) {
         throw new TypeError(`Invalid ${label} export: ${name}`);

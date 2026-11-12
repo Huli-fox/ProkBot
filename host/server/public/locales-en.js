@@ -1,4 +1,11 @@
 export default {
+  '在原生 Box 浏览器中完成网页任务': 'Complete web tasks in the native Box browser',
+  '收集信息并填入原生 Box 浏览器；普通聊天提问无需开启': 'Collect input for the native Box browser; ordinary chat questions do not need this',
+  '需要原生执行 Box；外接 MCP 不使用此开关': 'Requires a native execution Box; external MCP tools do not use this switch',
+  '等待桌面客户端连接': 'Waiting for a desktop client to connect',
+  '当前仅使用外接 MCP。应用工具由各服务提供，不受原生 Box 开关控制。': 'Using external MCP only. Application tools are provided by each service, independently of native Box switches.',
+  '开关保存使用偏好；实际能力还取决于执行 Box 和桌面连接。': 'Switches save your preferences; effective capabilities also depend on the execution Box and desktop connection.',
+  '当前生效': 'Currently active',
   '通知偏好': 'Notification preferences',
   '通知频率': 'Notification frequency',
   '适用于手机和 Mac；授权与提问仍会提醒。': 'Applies to mobile and Mac. Approvals and questions still notify you.',

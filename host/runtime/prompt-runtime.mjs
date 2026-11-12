@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { readJson, writePrivate } from '../server/storage.mjs';
 import { promptDigest, promptId, promptRoles, validatePrompt } from '../server/prompt-settings.mjs';
+import { boxDisabled } from './disabled-box.mjs';
 
 /** Only base instructions are catalogued. Profile, memory, skills and user content stay in the original assembler. */
 export async function installLocalPromptPolicy(directory, library, { pollMs = 1000 } = {}) {
@@ -21,7 +22,7 @@ export async function installLocalPromptPolicy(directory, library, { pollMs = 10
       return id;
     }
     catalog.entries.push({ id, role, original, digest: promptDigest(original), observedAt: Date.now(), observed,
-      source: 'd0a4baa · system-prompt-assembly' });
+      source: `d0a4baa · system-prompt-assembly${boxDisabled() ? ' · external MCP' : ''}` });
     catalog.entries = catalog.entries.slice(-100); void flush(); return id;
   }
   async function refresh() {
@@ -35,8 +36,10 @@ export async function installLocalPromptPolicy(directory, library, { pollMs = 10
   await refresh();
   const bindings = library?.getPromptToolsRecoveryBindings?.();
   if (bindings) {
-    observe('parent', bindings.sandBaseSystemPromptVariant({ cloudAgentsEnabled: false, dynamicToolsEnabled: false, multiMachineLocalExecEnabled: false, voiceCallEnabled: false }), false);
-    observe('automation', bindings.sandAutomationSubagentSystemPromptVariant({ cloudAgentsEnabled: false, dynamicToolsEnabled: false, multiMachineLocalExecEnabled: false, voiceCallEnabled: false }), false);
+    const defaults = { cloudAgentsEnabled: false, dynamicToolsEnabled: false, multiMachineLocalExecEnabled: false, voiceCallEnabled: false,
+      ...(boxDisabled() ? { hostSurfaces: { userComputer: false } } : {}) };
+    observe('parent', bindings.sandBaseSystemPromptVariant(defaults), false);
+    observe('automation', bindings.sandAutomationSubagentSystemPromptVariant(defaults), false);
     for (const role of ['generalPurpose', 'computerUse', 'browserUse']) observe(role, bindings.buildSandSubagentSystemPrompt({ subagentType: role, readonly: false }), false);
   }
   await tail;

@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { readJson } from '../server/storage.mjs';
 import { defaultHarnessSettings, validateHarnessSettings } from '../server/harness-settings.mjs';
+import { boxDisabled } from './disabled-box.mjs';
 
 const controlled = {
   sand_browser_use_subagent: 'browserUse', sand_user_form: 'userForm',
@@ -8,6 +9,7 @@ const controlled = {
   sand_teach_by_demonstration: 'teachTask',
 };
 const disabled = new Set(['sand_draft_external_message', 'grok_bot_stripe_link', 'sand_voice_call']);
+const nativeBoxFeatures = new Set(['sand_browser_use_subagent', 'sand_user_form', 'agent_prompted_cookie_sync', 'sand_teach_by_demonstration']);
 
 /** Original stateful services keep their lifetime; only local feature decisions change. */
 export async function createLocalCapabilities(directory) {
@@ -34,7 +36,7 @@ export async function createLocalCapabilities(directory) {
     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
     experiments(original) {
       return new Proxy(original, { get(target, key) {
-        if (key === 'checkFeatureGate') return (name, ...args) => name === 'sand_share_bot' ? true : controlled[name] ? settings[controlled[name]] :
+        if (key === 'checkFeatureGate') return (name, ...args) => boxDisabled() && nativeBoxFeatures.has(name) ? false : name === 'sand_share_bot' ? true : controlled[name] ? settings[controlled[name]] :
           disabled.has(name) ? false : target.checkFeatureGate(name, ...args);
         const value = Reflect.get(target, key); return typeof value === 'function' ? value.bind(target) : value;
       } });
